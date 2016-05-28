@@ -1,0 +1,15 @@
+{
+  "name": "search-engine",
+  "version": "0.0.1",
+  "description": "A NodeJS based search engine",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jordan Lord (http://jordanlord.co.uk)",
+  "license": "MIT",
+  "devDependencies": {
+    "crawler": "^0.4.3",
+    "mysql": "^2.10.2"
+  }
+}
