@@ -1,6 +1,6 @@
 var mysql = require('mysql');
 var env = require('./.env.json');
-var Crawl = require('./js/crawl.js');
+var Crawl = require('./js/Crawl.js');
 
 var connection = mysql.createConnection({
     host: env.database.host,
