@@ -1,7 +1,5 @@
 var Crawler = require('crawler');
 
-var explored = [];
-
 
 /*
  * Class which crawls the web.
@@ -48,7 +46,7 @@ var Crawl = function () {
         var match = toQueueUrl.match(/http(s?):\/\/[^/?:#]*/);
 
         if (match) {
-            if (explored.indexOf(match[0]) === -1) {
+            if (this.explored.indexOf(match[0]) === -1) {
                 this._found(match[0]);
             }
         }
