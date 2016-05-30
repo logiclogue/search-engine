@@ -38,6 +38,12 @@ var Crawl = function () {
      */
     proto_._forEachLink = function (index, a, $) {
         var toQueueUrl = $(a).attr('href');
+        var description = $('[name=description]').attr('content');
+        var title = $('title');
+
+        if (title !== undefined) {
+            title = title.html();
+        }
 
         if (toQueueUrl === undefined) {
             return;
@@ -47,7 +53,7 @@ var Crawl = function () {
 
         if (match) {
             if (this.explored.indexOf(match[0]) === -1) {
-                this._found(match[0]);
+                this._found(match[0], title, description);
             }
         }
     };
@@ -55,13 +61,12 @@ var Crawl = function () {
     /*
      * Main found method.
      */
-    proto_._found = function (url) {
+    proto_._found = function (url, title, description) {
         this.explored.push(url);
-        console.log(url);
         this.crawler.queue(url);
 
         if (this.found !== undefined) {
-            this.found(url);
+            this.found(url, title, description);
         }
     };
 

@@ -19,4 +19,8 @@ connection.query('SELECT ?? FROM entries', [search], function (err, rows) {
 
 crawl.crawler.queue('http://reckit.co.uk');
 
+crawl.found = function (url, title, description) {
+    console.log(title);
+};
+
 connection.end();
