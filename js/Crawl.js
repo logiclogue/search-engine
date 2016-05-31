@@ -11,6 +11,10 @@ var Crawl = function () {
     this.crawler = new Crawler({
         maxConnections: 10,
         callback: function (error, result, $) {
+            var host = result.request.host;
+
+            self._found(host, $);
+
             if (error || $ === undefined) {
                 return;
             }
@@ -53,7 +57,6 @@ var Crawl = function () {
 
         if (match) {
             if (this.explored.indexOf(match[0]) === -1) {
-                this._found(match[0], title, description);
             }
         }
     };
@@ -61,9 +64,11 @@ var Crawl = function () {
     /*
      * Main found method.
      */
-    proto_._found = function (url, title, description) {
+    proto_._found = function (url, $) {
+        var title = $('title').html();
+        var description = $('[name=description]').attr('content');
+
         this.explored.push(url);
-        this.crawler.queue(url);
 
         if (this.found !== undefined) {
             this.found(url, title, description);

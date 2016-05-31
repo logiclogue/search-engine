@@ -20,9 +20,11 @@ connection.query('SELECT ?? FROM entries', [search], function (err, rows) {
 crawl.crawler.queue('http://reckit.co.uk');
 
 crawl.found = function (url, title, description) {
-    connection.query('INSERT INTO websites (url, title, description) VALUES (?, ?, ?)', [url, title, description], function (err) {
+    /*connection.query('INSERT INTO websites (url, title, description) VALUES (?, ?, ?)', [url, title, description], function (err) {
         console.log(err);
-    });
+    });*/
+
+    console.log(url, title, description);
 };
 
 //connection.end();
