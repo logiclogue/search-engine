@@ -7,21 +7,26 @@ var Crawler = require('crawler');
 var Crawl = function () {
     var self = this;
 
-    this.explored = [];
     this.crawler = new Crawler({
         maxConnections: 10,
         callback: function (error, result, $) {
             var host = result.request.host;
 
-            self._found(host, $);
-
-            if (error || $ === undefined) {
+            if ($ === undefined) {
                 return;
             }
 
-            $('a').each(function (index, a) {
-                self._forEachLink(index, a, $);
+            self._found(host, $, function (explored) {
+                console.log(explored);
+                if (error || explored) {
+                    return;
+                }
+
+                $('a').each(function (index, a) {
+                    self._forEachLink(index, a, $);
+                });
             });
+
         }
     });
 };
@@ -42,14 +47,7 @@ var Crawl = function () {
      */
     proto_._forEachLink = function (index, a, $) {
         var toQueueUrl = $(a).attr('href');
-        var description = $('[name=description]').attr('content');
-        var title = $('title');
-        var url;
         var match;
-
-        if (title !== undefined) {
-            title = title.html();
-        }
 
         if (toQueueUrl === undefined) {
             return;
@@ -61,26 +59,23 @@ var Crawl = function () {
             return;
         }
 
-        url = match[0];
-
         if (match) {
-            if (this.explored.indexOf(url) === -1) {
-                this.crawler.queue(url);
-            }
+            this.crawler.queue(match[0]);
         }
     };
 
     /*
      * Main found method.
      */
-    proto_._found = function (url, $) {
+    proto_._found = function (url, $, callback) {
         var title = $('title').html();
         var description = $('[name=description]').attr('content');
 
-        this.explored.push(url);
-
         if (this.found !== undefined) {
-            this.found(url, title, description);
+            this.found(url, title, description, callback);
+        }
+        else {
+            callback(false);
         }
     };
 

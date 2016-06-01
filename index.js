@@ -19,19 +19,25 @@ database();
 function database() {
     connection.connect();
 
-    connection.query('SELECT ?? FROM entries', [search], function (err, rows) {
-        //console.log(rows[0][search]);
-    });
+    crawl.found = function (url, title, description, callback) {
+        connection.query('SELECT url FROM websites WHERE url = ? LIMIT 1', url, function (err, rows) {
+            var inserted = rows.length === 1;
 
-    crawl.found = function (url, title, description) {
-        connection.query('INSERT INTO websites (url, title, description) VALUES (?, ?, ?)', [url, title, description], function (err) {
-            if (err) {
-                console.log(err);
+            callback(inserted);
 
-                return;
+            if (!inserted) {
+                insertDatabase(url, title, description);
             }
         });
-
+        
         console.log(url, title, description);
     };
+}
+
+function insertDatabase(url, title, description) {
+    connection.query('INSERT INTO websites (url, title, description) VALUES (?, ?, ?)', [url, title, description], function (err) {
+        if (err) {
+            return;
+        }
+    });
 }
