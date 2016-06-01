@@ -44,6 +44,8 @@ var Crawl = function () {
         var toQueueUrl = $(a).attr('href');
         var description = $('[name=description]').attr('content');
         var title = $('title');
+        var url;
+        var match;
 
         if (title !== undefined) {
             title = title.html();
@@ -53,10 +55,17 @@ var Crawl = function () {
             return;
         }
 
-        var match = toQueueUrl.match(/http(s?):\/\/[^/?:#]*/);
+        match = toQueueUrl.match(/http(s?):\/\/[^/?:#]*/);
+
+        if (match === null) {
+            return;
+        }
+
+        url = match[0];
 
         if (match) {
-            if (this.explored.indexOf(match[0]) === -1) {
+            if (this.explored.indexOf(url) === -1) {
+                this.crawler.queue(url);
             }
         }
     };

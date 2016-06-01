@@ -11,20 +11,27 @@ var connection = mysql.createConnection({
 var search = 'url';
 var crawl = new Crawl();
 
-connection.connect();
-
-connection.query('SELECT ?? FROM entries', [search], function (err, rows) {
-    //console.log(rows[0][search]);
-});
-
 crawl.crawler.queue('http://reckit.co.uk');
 
-crawl.found = function (url, title, description) {
-    /*connection.query('INSERT INTO websites (url, title, description) VALUES (?, ?, ?)', [url, title, description], function (err) {
-        console.log(err);
-    });*/
+database();
 
-    console.log(url, title, description);
-};
 
-//connection.end();
+function database() {
+    connection.connect();
+
+    connection.query('SELECT ?? FROM entries', [search], function (err, rows) {
+        //console.log(rows[0][search]);
+    });
+
+    crawl.found = function (url, title, description) {
+        connection.query('INSERT INTO websites (url, title, description) VALUES (?, ?, ?)', [url, title, description], function (err) {
+            if (err) {
+                console.log(err);
+
+                return;
+            }
+        });
+
+        console.log(url, title, description);
+    };
+}
