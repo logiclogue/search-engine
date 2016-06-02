@@ -1,4 +1,5 @@
 var Crawler = require('crawler');
+var database = require('./database.js');
 
 
 /*
@@ -9,43 +10,38 @@ var Crawl = function () {
 
     this.crawler = new Crawler({
         maxConnections: 10,
-        callback: function (error, result, $) {
-            var host = result.request.host;
-
-            if ($ === undefined) {
-                return;
-            }
-
-            self._found(host, $, function (explored) {
-                console.log(explored);
-                if (error || explored) {
-                    return;
-                }
-
-                $('a').each(function (index, a) {
-                    self._forEachLink(index, a, $);
-                });
-            });
-
-        }
+        callback: self.init.bind(self)
     });
 };
 
 (function (static_, proto_) {
 
     /*
-     * User defined function that is called when a
-     * website is found.
+     * Init method that is called by the crawler when
+     * a new site is being crawled. Called for each
+     * site.
      */
-    proto_.found = function () {
+    proto_.init = function (error, result, $) {
+        var host = result.request.host;
+        var title = $('title').html();
+        var description = $('[name=description]').attr('content');
 
+        // Return if blank page.
+        if ($ === undefined) {
+            return;
+        }
+
+        this.test(host, title, description);
+
+        $('a').each(function (index, a) {
+            this.forEachLink(index, a, $);
+        }.bind(this));
     };
-
 
     /*
      * For every link in the page find valid.
      */
-    proto_._forEachLink = function (index, a, $) {
+    proto_.forEachLink = function (index, a, $) {
         var toQueueUrl = $(a).attr('href');
         var match;
 
@@ -65,18 +61,31 @@ var Crawl = function () {
     };
 
     /*
-     * Main found method.
+     * Method that is called when a website has been
+     * found. Checks to see if it is in the database.
      */
-    proto_._found = function (url, $, callback) {
-        var title = $('title').html();
-        var description = $('[name=description]').attr('content');
+    proto_.test = function (url, title, description) {
+        database.connection.query('SELECT url FROM websites WHERE url = ? LIMIT 1', url, function (err, rows) {
+            var inserted = rows.length === 1;
 
-        if (this.found !== undefined) {
-            this.found(url, title, description, callback);
-        }
-        else {
-            callback(false);
-        }
+            if (!inserted) {
+                this.insert(url, title, description);
+            }
+        }.bind(this));
+        
+        console.log(url, title, description);
+    };
+
+    /*
+     * If the website hasn't been found before. Its
+     * info is.testd in the database.
+     */
+    proto_.insert = function (url, title, description) {
+        database.connection.query('INSERT INTO websites (url, title, description) VALUES (?, ?, ?)', [url, title, description], function (err) {
+            if (err) {
+                return;
+            }
+        });
     };
 
 }(Crawl, Crawl.prototype));
