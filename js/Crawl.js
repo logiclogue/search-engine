@@ -12,6 +12,7 @@ var Crawl = function () {
         maxConnections: 10,
         callback: self.init.bind(self)
     });
+    this.explored = [];
 };
 
 (function (static_, proto_) {
@@ -23,13 +24,17 @@ var Crawl = function () {
      */
     proto_.init = function (error, result, $) {
         var host = result.request.host;
-        var title = $('title').html();
-        var description = $('[name=description]').attr('content');
+        var title;
+        var description;
 
         // Return if blank page.
         if ($ === undefined) {
             return;
         }
+
+        title = $('title').html();
+        description = $('[name=description]').attr('content');
+
 
         this.test(host, title, description);
 
@@ -44,6 +49,7 @@ var Crawl = function () {
     proto_.forEachLink = function (index, a, $) {
         var toQueueUrl = $(a).attr('href');
         var match;
+        var url;
 
         if (toQueueUrl === undefined) {
             return;
@@ -55,8 +61,11 @@ var Crawl = function () {
             return;
         }
 
-        if (match) {
-            this.crawler.queue(match[0]);
+        url = match[0];
+
+        if (match && this.explored.indexOf(url) === -1) {
+            this.explored.push(url);
+            this.crawler.queue(url);
         }
     };
 
