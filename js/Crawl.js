@@ -12,7 +12,6 @@ var Crawl = function () {
         maxConnections: 10,
         callback: self.init.bind(self)
     });
-    this.explored = [];
 };
 
 (function (static_, proto_) {
@@ -35,8 +34,7 @@ var Crawl = function () {
         title = $('title').html();
         description = $('[name=description]').attr('content');
 
-
-        this.test(host, title, description);
+        this.insert(host, title, description);
 
         $('a').each(function (index, a) {
             this.forEachLink(index, a, $);
@@ -48,8 +46,8 @@ var Crawl = function () {
      */
     proto_.forEachLink = function (index, a, $) {
         var toQueueUrl = $(a).attr('href');
-        var match;
         var url;
+        var host;
 
         if (toQueueUrl === undefined) {
             return;
@@ -62,27 +60,26 @@ var Crawl = function () {
         }
 
         url = match[0];
+        host = match[0].split('//')[1];
 
-        if (match && this.explored.indexOf(url) === -1) {
-            this.explored.push(url);
-            this.crawler.queue(url);
-        }
+        this.test(host, function (inserted) {
+            if (!inserted) {
+                console.log(host);
+                this.crawler.queue(url);
+            }
+        }.bind(this));
     };
 
     /*
      * Method that is called when a website has been
      * found. Checks to see if it is in the database.
      */
-    proto_.test = function (url, title, description) {
-        database.connection.query('SELECT url FROM websites WHERE url = ? LIMIT 1', url, function (err, rows) {
-            var inserted = rows.length === 1;
+    proto_.test = function (url, callback) {
+        database.connection.query('SELECT COUNT(url) as count FROM websites WHERE url = ? LIMIT 1', url, function (err, rows) {
+            callback(rows[0].count === 1);
 
-            if (!inserted) {
-                this.insert(url, title, description);
-            }
+            this.insert(url);
         }.bind(this));
-        
-        console.log(url, title, description);
     };
 
     /*
