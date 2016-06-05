@@ -12,6 +12,7 @@ var Crawl = function () {
         maxConnections: 10,
         callback: self.init.bind(self)
     });
+    this.explored = [];
 };
 
 (function (static_, proto_) {
@@ -34,10 +35,16 @@ var Crawl = function () {
         title = $('title').html();
         description = $('[name=description]').attr('content');
 
-        this.insert(host, title, description);
+        this.insert(host, description, function (err) {
+            if (host === 'l.facebook.com') {
+                //console.log('here');
+            }
 
-        $('a').each(function (index, a) {
-            this.forEachLink(index, a, $);
+            if (!err) {
+                $('a').each(function (index, a) {
+                    this.forEachLink(index, a, $);
+                }.bind(this));
+            }
         }.bind(this));
     };
 
@@ -64,8 +71,18 @@ var Crawl = function () {
 
         this.test(host, function (inserted) {
             if (!inserted) {
-                console.log(host);
+                this.record(host);
                 this.crawler.queue(url);
+
+                /*if (this.explored.indexOf(host) === -1) {
+                    this.explored.push(host);
+                }
+                else {
+                    console.log(host);
+                }*/
+            }
+            else {
+                //console.log('here');
             }
         }.bind(this));
     };
@@ -77,20 +94,26 @@ var Crawl = function () {
     proto_.test = function (url, callback) {
         database.connection.query('SELECT COUNT(url) as count FROM websites WHERE url = ? LIMIT 1', url, function (err, rows) {
             callback(rows[0].count === 1);
+        });
+    };
 
-            this.insert(url);
-        }.bind(this));
+    /*
+     * Method that records the url initially.
+     */
+    proto_.record = function (url) {
+        database.connection.query('INSERT INTO websites (url, searchable) VALUES (?, false)', [url], function (err) {
+
+        });
     };
 
     /*
      * If the website hasn't been found before. Its
      * info is.testd in the database.
      */
-    proto_.insert = function (url, title, description) {
-        database.connection.query('INSERT INTO websites (url, title, description) VALUES (?, ?, ?)', [url, title, description], function (err) {
-            if (err) {
-                return;
-            }
+    proto_.insert = function (url, description, callback) {
+        database.connection.query('UPDATE websites SET description = ?, searchable = true WHERE url = ?', [description, url], function (err) {
+            console.log(url);
+            callback(err); 
         });
     };
 
